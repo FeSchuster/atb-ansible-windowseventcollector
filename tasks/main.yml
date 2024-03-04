@@ -2,25 +2,25 @@
 # tasks file for atb-ansible-windowseventcollector
 
 - name: Create working directory
-  win_file:
+  ansible.windows.win_file:
     path: C:\Wef
     state: directory
 
 - name: Download Palantirs Repo 'windows-event-forwarding'
-  win_get_url:
+  ansible.windows.win_get_url:
     url: https://github.com/palantir/windows-event-forwarding/archive/refs/heads/master.zip
     dest: C:\Wef\windows-event-forwarding.zip
     force: true
 
 - name: Unzip zip
-  win_unzip:
+  community.windows.win_unzip:
     src: C:\Wef\windows-event-forwarding.zip
     dest: C:\Wef
-    recurce: yes
-    delete_arcive: yes
+    recurce: true
+    delete_arcive: true
 
 - name: Import Event Channels using PowerShell
-  win_shell: |
+  ansible.windows.win_shell: |
     Stop-Service wecsvc
 
     Copy-Item -Path "C:\Wef\windows-event-forwarding-master\windows-event-channels\CustomEventChannels.dll" -Destination "C:\Windows\system32"
@@ -36,39 +36,37 @@
     Start-Service wecsvc
 
 - name: Import WEF-subscriptions via PowerShell
-  win_shell: |
+  ansible.windows.win_shell: |
     ForEach ($file in gci "C:\Wef\windows-event-forwarding-master\wef-subscriptions" -Filter "*.xml"){
-      wecutil cs $($file.FullName)  
+      wecutil cs $($file.FullName)
     }
 
 
 - name: Create working directory
-  win_file:
+  ansible.windows.win_file:
     path: C:\Temp\winlogbeat
     state: directory
 
 - name: Download Winlogbeat
-  win_get_url:
+  ansible.windows.win_get_url:
     url: https://artifacts.elastic.co/downloads/beats/winlogbeat/winlogbeat-8.11.1-windows-x86_64.zip
     dest: C:\Temp\winlogbeat\winlogbeat.zip
 
 - name: Unzip Winlogbeat via Powershell
-  win_shell: |
+  ansible.windows.win_shell: |
     Expand-Archive -Path C:\Temp\winlogbeat\winlogbeat.zip -DestinationPath C:\Temp\winlogbeat\unzipped
 
 - name: Create working directory
-  win_file:
+  ansible.windows.win_file:
     path: C:\winlogbeat
     state: directory
 
 - name: Prepare folder for better usability
-  win_shell: |
+  ansible.windows.win_shell: |
     Copy-Item C:\Temp\winlogbeat\unzipped\winlogbeat-8.11.1-windows-x86_64\* -Destination C:\winlogbeat
 
-#- name: Copy Winlogbeat config
-
 - name: Write config file
-  win_shell: |
+  ansible.windows.win_shell: |
     $config = @"
 
     winlogbeat.event_logs:
@@ -122,11 +120,11 @@
         hosts: ["ubuntu-kafka:9092"]
         topic: "windows"
         partition.round_robin:
-            reachable_only: false   
-                
+            reachable_only: false
+
         required_acks: 1
         compression: none
-        max_message_bytes: 1000000    
+        max_message_bytes: 1000000
         # version: 2.0.0
         codec.json:
             pretty: true
@@ -141,15 +139,15 @@
     state: present
 
 - name: Cleanup
-  win_shell: |
+  ansible.windows.win_shell: |
     Remove-Item C:\Temp\winlogbeat -Recurse
 
 - name: Install winlogbeat service
-  win_shell: |
+  ansible.windows.win_shell: |
     & C:\winlogbeat\install-service-winlogbeat.ps1
 
 - name: Start winlogbeat service
-  win_service:
+  ansible.windows.win_service:
     name: winlogbeat
     state: started
     start_mode: auto
