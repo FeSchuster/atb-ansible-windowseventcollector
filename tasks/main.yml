@@ -1,2 +1,155 @@
 ---
 # tasks file for atb-ansible-windowseventcollector
+
+- name: Create working directory
+  win_file:
+    path: C:\Wef
+    state: directory
+
+- name: Download Palantirs Repo 'windows-event-forwarding'
+  win_get_url:
+    url: https://github.com/palantir/windows-event-forwarding/archive/refs/heads/master.zip
+    dest: C:\Wef\windows-event-forwarding.zip
+    force: true
+
+- name: Unzip zip
+  win_unzip:
+    src: C:\Wef\windows-event-forwarding.zip
+    dest: C:\Wef
+    recurce: yes
+    delete_arcive: yes
+
+- name: Import Event Channels using PowerShell
+  win_shell: |
+    Stop-Service wecsvc
+
+    Copy-Item -Path "C:\Wef\windows-event-forwarding-master\windows-event-channels\CustomEventChannels.dll" -Destination "C:\Windows\system32"
+    Copy-Item -Path "C:\Wef\windows-event-forwarding-master\windows-event-channels\CustomEventChannels.man" -Destination "C:\Windows\system32"
+
+    wevtutil im C:\windows\system32\CustomEventChannels.man
+
+    $xml = wevtutil el | select-string -pattern "WEC"
+    foreach ($subscription in $xml) {
+      wevtutil sl $subscription /ms:41943040
+    }
+
+    Start-Service wecsvc
+
+- name: Import WEF-subscriptions via PowerShell
+  win_shell: |
+    ForEach ($file in gci "C:\Wef\windows-event-forwarding-master\wef-subscriptions" -Filter "*.xml"){
+      wecutil cs $($file.FullName)  
+    }
+
+
+- name: Create working directory
+  win_file:
+    path: C:\Temp\winlogbeat
+    state: directory
+
+- name: Download Winlogbeat
+  win_get_url:
+    url: https://artifacts.elastic.co/downloads/beats/winlogbeat/winlogbeat-8.11.1-windows-x86_64.zip
+    dest: C:\Temp\winlogbeat\winlogbeat.zip
+
+- name: Unzip Winlogbeat via Powershell
+  win_shell: |
+    Expand-Archive -Path C:\Temp\winlogbeat\winlogbeat.zip -DestinationPath C:\Temp\winlogbeat\unzipped
+
+- name: Create working directory
+  win_file:
+    path: C:\winlogbeat
+    state: directory
+
+- name: Prepare folder for better usability
+  win_shell: |
+    Copy-Item C:\Temp\winlogbeat\unzipped\winlogbeat-8.11.1-windows-x86_64\* -Destination C:\winlogbeat
+
+#- name: Copy Winlogbeat config
+
+- name: Write config file
+  win_shell: |
+    $config = @"
+
+    winlogbeat.event_logs:
+        - name: WEC-Authentication
+        - name: WEC-Code-Integrity
+        - name: WEC-EMET
+        - name: WEC-Powershell
+        - name: WEC-Process-Execution
+        - name: WEC-Services
+        - name: WEC-WMI
+        - name: WEC2-Application-Crashes
+        - name: WEC2-Applocker
+        - name: WEC2-Group-Policy-Errors
+        - name: WEC2-Object-Manipulation
+        - name: WEC2-Registry
+        - name: WEC2-Task-Scheduler
+        - name: WEC2-Windows-Defender
+        - name: WEC3-Account-Management
+        - name: WEC3-Drivers
+        - name: WEC3-External-Devices
+        - name: WEC3-Firewall
+        - name: WEC3-Print
+        - name: WEC3-Smart-Card
+        - name: WEC3-Windows-Diagnostics
+        - name: WEC4-Bits-Client
+        - name: WEC4-DNS
+        - name: WEC4-Hotpatching-Erros
+        - name: WEC4-Shares
+        - name: WEC4-System-Time-Change
+        - name: WEC4-Windows-Update
+        - name: WEC4-Wireless
+        - name: WEC5-Autoruns
+        - name: WEC5-Certificate-Authority
+        - name: WEC5-Crpyto-API
+        - name: WEC5-Log-Deletion-Security
+        - name: WEC5-Log-Deletion-System
+        - name: WEC5-MSI-Packages
+        - name: WEC5-Operating-Sytem
+        - name: WEC6-ADFS
+        - name: WEC6-Device-Guard
+        - name: WEC6-Duo-Security
+        - name: WEC6-Exploit-Guard
+        - name: WEC6-Microsoft-Office
+        - name: WEC6-Software-Restriction-Policies
+        - name: WEC6-Sysmon
+        - name: WEC7-Active-Directory
+        - name: WEC7-Privilege-Use
+        - name: WEC7-Terminal-Services
+    output.kafka:
+        enabled: true
+        hosts: ["ubuntu-kafka:9092"]
+        topic: "windows"
+        partition.round_robin:
+            reachable_only: false   
+                
+        required_acks: 1
+        compression: none
+        max_message_bytes: 1000000    
+        # version: 2.0.0
+        codec.json:
+            pretty: true
+            escape_html: false
+    "@
+    $config | Set-Content -Path "C:\winlogbeat\winlogbeat.yml"
+
+- name: Add kafka broker to hosts file
+  community.windows.win_hosts:
+    canonical_name: ubuntu-kafka
+    ip_address: " {{ kafka_broker_ip }}"
+    state: present
+
+- name: Cleanup
+  win_shell: |
+    Remove-Item C:\Temp\winlogbeat -Recurse
+
+- name: Install winlogbeat service
+  win_shell: |
+    & C:\winlogbeat\install-service-winlogbeat.ps1
+
+- name: Start winlogbeat service
+  win_service:
+    name: winlogbeat
+    state: started
+    start_mode: auto
