@@ -35,35 +35,54 @@
 
     Start-Service wecsvc
 
-- name: Import WEF-subscriptions via PowerShell
-  ansible.windows.win_shell: |
-    ForEach ($file in gci "C:\Wef\windows-event-forwarding-master\wef-subscriptions" -Filter "*.xml"){
-      wecutil cs $($file.FullName)
-    }
+# - name: Import WEF-subscriptions via PowerShell
+#   ansible.windows.win_shell: |
+#     ForEach ($file in gci "C:\Wef\windows-event-forwarding-master\wef-subscriptions" -Filter "*.xml"){
+#       wecutil cs $($file.FullName)
+#     }
 
+# - name: Set DACL for WEC via PowerShell
+#   ansible.windows.win_shell: |
+#     Start-Process netsh.exe -ArgumentList "http delete urlacl url=http://+:5985/wsman/"
+#     Start-Process netsh.exe -ArgumentList "http add urlacl url=http://+:5985/wsman/ sddl=D:(A;;GX;;;S-1-5-80-569256582-2953403351-2909559716-1301513147-412116970)(A;;GX;;;S-1-5-80-4059739203-877974739-1245631912-527174227-2996563517)"
+#     Start-Process netsh.exe -ArgumentList "http delete urlacl url=https://+:5986/wsman/"
+#     Start-Process netsh.exe -ArgumentList "http add urlacl url=https://+:5986/wsman/ sddl=D:(A;;GX;;;S-1-5-80-569256582-2953403351-2909559716-1301513147-412116970)(A;;GX;;;S-1-5-80-4059739203-877974739-1245631912-527174227-2996563517)"
+#     # netsh http delete urlacl url=http://+:5985/wsman/
+#     # netsh http add urlacl url=http://+:5985/wsman/ sddl=D:(A;;GX;;;S-1-5-80-569256582-2953403351-2909559716-1301513147-412116970)(A;;GX;;;S-1-5-80-4059739203-877974739-1245631912-527174227-2996563517)
+#     # netsh http delete urlacl url=https://+:5986/wsman/
+#     # netsh http add urlacl url=https://+:5986/wsman/ sddl=D:(A;;GX;;;S-1-5-80-569256582-2953403351-2909559716-1301513147-412116970)(A;;GX;;;S-1-5-80-4059739203-877974739-1245631912-527174227-2996563517)
 
-- name: Create working directory
-  ansible.windows.win_file:
-    path: C:\Temp\winlogbeat
-    state: directory
+- name: Set DACL via CMD
+  ansible.windows.win_command: |
+    netsh http delete urlacl url=http://+:5985/wsman/
+    netsh http add urlacl url=http://+:5985/wsman/ sddl=D:(A;;GX;;;S-1-5-80-569256582-2953403351-2909559716-1301513147-412116970)(A;;GX;;;S-1-5-80-4059739203-877974739-1245631912-527174227-2996563517)
+    netsh http delete urlacl url=https://+:5986/wsman/
+    netsh http add urlacl url=https://+:5986/wsman/ sddl=D:(A;;GX;;;S-1-5-80-569256582-2953403351-2909559716-1301513147-412116970)(A;;GX;;;S-1-5-80-4059739203-877974739-1245631912-527174227-2996563517)
 
-- name: Download Winlogbeat
-  ansible.windows.win_get_url:
-    url: https://artifacts.elastic.co/downloads/beats/winlogbeat/winlogbeat-8.11.1-windows-x86_64.zip
-    dest: C:\Temp\winlogbeat\winlogbeat.zip
-
-- name: Unzip Winlogbeat via Powershell
-  ansible.windows.win_shell: |
-    Expand-Archive -Path C:\Temp\winlogbeat\winlogbeat.zip -DestinationPath C:\Temp\winlogbeat\unzipped
 
 - name: Create working directory
   ansible.windows.win_file:
     path: C:\winlogbeat
     state: directory
 
-- name: Prepare folder for better usability
-  ansible.windows.win_shell: |
-    Copy-Item C:\Temp\winlogbeat\unzipped\winlogbeat-8.11.1-windows-x86_64\* -Destination C:\winlogbeat
+- name: Download Winlogbeat
+  ansible.windows.win_get_url:
+    url: https://artifacts.elastic.co/downloads/beats/winlogbeat/winlogbeat-8.11.1-windows-x86_64.zip
+    dest: C:\winlogbeat\winlogbeat.zip
+
+- name: Unzip zip
+  community.windows.win_unzip:
+    src: C:\winlogbeat\winlogbeat.zip
+    dest: C:\winlogbeat
+    recurce: true
+    delete_arcive: true
+
+- name: Copy files
+  ansible.windows.win_copy:
+    src: C:\winlogbeat\winlogbeat-8.11.1-windows-x86_64\
+    dest: C:\winlogbeat
+    remote_src: true
+    force: true
 
 - name: Write config file
   ansible.windows.win_shell: |
@@ -135,12 +154,8 @@
 - name: Add kafka broker to hosts file
   community.windows.win_hosts:
     canonical_name: ubuntu-kafka
-    ip_address: " {{ kafka_broker_ip }}"
+    ip_address: "{{ kafka_broker_ip }}"
     state: present
-
-- name: Cleanup
-  ansible.windows.win_shell: |
-    Remove-Item C:\Temp\winlogbeat -Recurse
 
 - name: Install winlogbeat service
   ansible.windows.win_shell: |
