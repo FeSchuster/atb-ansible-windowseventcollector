@@ -32,23 +32,6 @@
     ForEach ($file in gci "C:\Wef\windows-event-forwarding-master\wef-subscriptions" -Filter "*.xml"){wecutil cs $($file.FullName)}
     Start-Service wecsvc
 
-# - name: Import WEF-subscriptions via PowerShell
-#   ansible.windows.win_shell: |
-#     ForEach ($file in gci "C:\Wef\windows-event-forwarding-master\wef-subscriptions" -Filter "*.xml"){
-#       wecutil cs $($file.FullName)
-#     }
-# ForEach ($file in gci "C:\Wef\windows-event-forwarding-master\wef-subscriptions" -Filter "*.xml"){wecutil cs $($file.FullName)}
-# - name: Set DACL for WEC via PowerShell
-#   ansible.windows.win_shell: |
-#     Start-Process netsh.exe -ArgumentList "http delete urlacl url=http://+:5985/wsman/"
-#     Start-Process netsh.exe -ArgumentList "http add urlacl url=http://+:5985/wsman/ sddl=D:(A;;GX;;;S-1-5-80-569256582-2953403351-2909559716-1301513147-412116970)(A;;GX;;;S-1-5-80-4059739203-877974739-1245631912-527174227-2996563517)"
-#     Start-Process netsh.exe -ArgumentList "http delete urlacl url=https://+:5986/wsman/"
-#     Start-Process netsh.exe -ArgumentList "http add urlacl url=https://+:5986/wsman/ sddl=D:(A;;GX;;;S-1-5-80-569256582-2953403351-2909559716-1301513147-412116970)(A;;GX;;;S-1-5-80-4059739203-877974739-1245631912-527174227-2996563517)"
-#     # netsh http delete urlacl url=http://+:5985/wsman/
-#     # netsh http add urlacl url=http://+:5985/wsman/ sddl=D:(A;;GX;;;S-1-5-80-569256582-2953403351-2909559716-1301513147-412116970)(A;;GX;;;S-1-5-80-4059739203-877974739-1245631912-527174227-2996563517)
-#     # netsh http delete urlacl url=https://+:5986/wsman/ 
-#     # netsh http add urlacl url=https://+:5986/wsman/ sddl=D:(A;;GX;;;S-1-5-80-569256582-2953403351-2909559716-1301513147-412116970)(A;;GX;;;S-1-5-80-4059739203-877974739-1245631912-527174227-2996563517)
-
 - name: Set ACL via CMD
   ansible.windows.win_command: "{{ item }}"
   with_items:
@@ -56,7 +39,6 @@
     - 'netsh http add urlacl url=http://+:5985/wsman/ sddl="D:(A;;GX;;;S-1-5-80-569256582-2953403351-2909559716-1301513147-412116970)(A;;GX;;;S-1-5-80-4059739203-877974739-1245631912-527174227-2996563517)"'
     - 'netsh http delete urlacl url=https://+:5986/wsman/'
     - 'netsh http add urlacl url=https://+:5986/wsman/ sddl="D:(A;;GX;;;S-1-5-80-569256582-2953403351-2909559716-1301513147-412116970)(A;;GX;;;S-1-5-80-4059739203-877974739-1245631912-527174227-2996563517)"'
-
 
 - name: Create working directory
   ansible.windows.win_file:
