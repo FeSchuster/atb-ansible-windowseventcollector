@@ -29,8 +29,9 @@
     foreach ($subscription in $xml) {
       wevtutil sl $subscription /ms:41943040
     }
-    ForEach ($file in gci "C:\Wef\windows-event-forwarding-master\wef-subscriptions" -Filter "*.xml"){wecutil cs $($file.FullName)}
     Start-Service wecsvc
+    ForEach ($file in gci "C:\Wef\windows-event-forwarding-master\wef-subscriptions" -Filter "*.xml"){wecutil cs $($file.FullName)}
+    
 
 - name: Set ACL via CMD
   ansible.windows.win_command: "{{ item }}"
