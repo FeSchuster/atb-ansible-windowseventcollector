@@ -93,10 +93,10 @@
         - name: WEC3-Windows-Diagnostics
         - name: WEC4-Bits-Client
         - name: WEC4-DNS
-        - name: WEC4-Hotpatching-Erros
+        - name: WEC4-Hotpatching-Errors
         - name: WEC4-Shares
         - name: WEC4-System-Time-Change
-        - name: WEC4-Windows-Update
+        - name: WEC4-Windows-Updates
         - name: WEC4-Wireless
         - name: WEC5-Autoruns
         - name: WEC5-Certificate-Authority
@@ -104,7 +104,7 @@
         - name: WEC5-Log-Deletion-Security
         - name: WEC5-Log-Deletion-System
         - name: WEC5-MSI-Packages
-        - name: WEC5-Operating-Sytem
+        - name: WEC5-Operating-System
         - name: WEC6-ADFS
         - name: WEC6-Device-Guard
         - name: WEC6-Duo-Security
