@@ -1,0 +1,152 @@
+---
+winlogbeat.event_logs:
+  - name: WEC-Authentication
+    forwarded: true
+    tags: [WEC-Authentication]
+  - name: WEC-Code-Integrity
+    forwarded: true
+    tags: [WEC-Code-Integrity]
+  - name: WEC-EMET
+    forwarded: true
+    tags: [WEC-EMET]
+  - name: WEC-Powershell
+    forwarded: true
+    tags: [WEC-Powershell]
+  - name: WEC-Process-Execution
+    forwarded: true
+    tags: [WEC-Process-Execution]
+  - name: WEC-Services
+    forwarded: true
+    tags: [WEC-Services]
+  - name: WEC-WMI
+    forwarded: true
+    tags: [WEC-WMI]
+  - name: WEC2-Application-Crashes
+    forwarded: true
+    tags: [WEC2-Application-Crashes]
+  - name: WEC2-Applocker
+    forwarded: true
+    tags: [WEC2-Applocker]
+  - name: WEC2-Group-Policy-Errors
+    forwarded: true
+    tags: [WEC2-Group-Policy-Errors]
+  - name: WEC2-Object-Manipulation
+    forwarded: true
+    tags: [WEC2-Object-Manipulation]
+  - name: WEC2-Registry
+    forwarded: true
+    tags: [WEC2-Registry]
+  - name: WEC2-Task-Scheduler
+    forwarded: true
+    tags: [WEC2-Task-Scheduler]
+  - name: WEC2-Windows-Defender
+    forwarded: true
+    tags: [WEC2-Windows-Defender]
+  - name: WEC3-Account-Management
+    forwarded: true
+    tags: [WEC3-Account-Management]
+  - name: WEC3-Drivers
+    forwarded: true
+    tags: [WEC3-Drivers]
+  - name: WEC3-External-Devices
+    forwarded: true
+    tags: [WEC3-External-Devices]
+  - name: WEC3-Firewall
+    forwarded: true
+    tags: [WEC3-Firewall]
+  - name: WEC3-Print
+    forwarded: true
+    tags: [WEC3-Print]
+  - name: WEC3-Smart-Card
+    forwarded: true
+    tags: [WEC3-Smart-Card]
+  - name: WEC3-Windows-Diagnostics
+    forwarded: true
+    tags: [WEC3-Windows-Diagnostics]
+  - name: WEC4-Bits-Client
+    forwarded: true
+    tags: [WEC4-Bits-Client]
+  - name: WEC4-DNS
+    forwarded: true
+    tags: [WEC4-DNS]
+  - name: WEC4-Hotpatching-Errors
+    forwarded: true
+    tags: [WEC4-Hotpatching-Errors]
+  - name: WEC4-Shares
+    forwarded: true
+    tags: [WEC4-Shares]
+  - name: WEC4-System-Time-Change
+    forwarded: true
+    tags: [WEC4-System-Time-Change]
+  - name: WEC4-Windows-Updates
+    forwarded: true
+    tags: [WEC4-Windows-Updates]
+  - name: WEC4-Wireless
+    forwarded: true
+    tags: [WEC4-Wireless]
+  - name: WEC5-Autoruns
+    forwarded: true
+    tags: [WEC5-Autoruns]
+  - name: WEC5-Certificate-Authority
+    forwarded: true
+    tags: [WEC5-Certificate-Authority]
+  - name: WEC5-Crypto-API
+    forwarded: true
+    tags: [WEC5-Crypto-API]
+  - name: WEC5-Log-Deletion-Security
+    forwarded: true
+    tags: [WEC5-Log-Deletion-Security]
+  - name: WEC5-Log-Deletion-System
+    forwarded: true
+    tags: [WEC5-Log-Deletion-System]
+  - name: WEC5-MSI-Packages
+    forwarded: true
+    tags: [WEC5-MSI-Packages]
+  - name: WEC5-Operating-System
+    forwarded: true
+    tags: [WEC5-Operating-System]
+  - name: WEC6-ADFS
+    forwarded: true
+    tags: [WEC6-ADFS]
+  - name: WEC6-Device-Guard
+    forwarded: true
+    tags: [WEC6-Device-Guard]
+  - name: WEC6-Duo-Security
+    forwarded: true
+    tags: [WEC6-Duo-Security]
+  - name: WEC6-Exploit-Guard
+    forwarded: true
+    tags: [WEC6-Exploit-Guard]
+  - name: WEC6-Microsoft-Office
+    forwarded: true
+    tags: [WEC6-Microsoft-Office]
+  - name: WEC6-Software-Restriction-Policies
+    forwarded: true
+    tags: [WEC6-Software-Restriction-Policies]
+  - name: WEC6-Sysmon
+    forwarded: true
+    tags: [WEC6-Sysmon]
+  - name: WEC7-Active-Directory
+    forwarded: true
+    tags: [WEC7-Active-Directory]
+  - name: WEC7-Privilege-Use
+    forwarded: true
+    tags: [WEC7-Privilege-Use]
+  - name: WEC7-Terminal-Services
+    forwarded: true
+    tags: [WEC7-Terminal-Services]
+
+output.kafka:
+  enabled: true
+  hosts: ["ubuntu-kafka:9092"]
+  topic: "windows"
+  partition.round_robin:
+    reachable_only: false
+
+  required_acks: 1
+  compression: none
+  max_message_bytes: 1000000
+  # version: 2.0.0
+  codec.json:
+    pretty: true
+    escape_html: false
