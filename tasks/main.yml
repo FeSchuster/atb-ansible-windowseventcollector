@@ -1,5 +1,14 @@
 ---
 # tasks file for atb-ansible-windowseventcollector
+- name: Install 7zip
+  chocolatey.chocolatey.win_chocolatey:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - 7zip
+    - notepadplusplus
+    - vscode
+    - firefox
 
 - name: Create working directory
   ansible.windows.win_file:
@@ -65,72 +74,78 @@
     remote_src: true
     force: true
 
-- name: Write config file
-  ansible.windows.win_shell: |
-    $config = @"
+# - name: Write config file
+#   ansible.windows.win_shell: |
+#     $config = @"
 
-    winlogbeat.event_logs:
-        - name: WEC-Authentication
-        - name: WEC-Code-Integrity
-        - name: WEC-EMET
-        - name: WEC-Powershell
-        - name: WEC-Process-Execution
-        - name: WEC-Services
-        - name: WEC-WMI
-        - name: WEC2-Application-Crashes
-        - name: WEC2-Applocker
-        - name: WEC2-Group-Policy-Errors
-        - name: WEC2-Object-Manipulation
-        - name: WEC2-Registry
-        - name: WEC2-Task-Scheduler
-        - name: WEC2-Windows-Defender
-        - name: WEC3-Account-Management
-        - name: WEC3-Drivers
-        - name: WEC3-External-Devices
-        - name: WEC3-Firewall
-        - name: WEC3-Print
-        - name: WEC3-Smart-Card
-        - name: WEC3-Windows-Diagnostics
-        - name: WEC4-Bits-Client
-        - name: WEC4-DNS
-        - name: WEC4-Hotpatching-Errors
-        - name: WEC4-Shares
-        - name: WEC4-System-Time-Change
-        - name: WEC4-Windows-Updates
-        - name: WEC4-Wireless
-        - name: WEC5-Autoruns
-        - name: WEC5-Certificate-Authority
-        - name: WEC5-Crpyto-API
-        - name: WEC5-Log-Deletion-Security
-        - name: WEC5-Log-Deletion-System
-        - name: WEC5-MSI-Packages
-        - name: WEC5-Operating-System
-        - name: WEC6-ADFS
-        - name: WEC6-Device-Guard
-        - name: WEC6-Duo-Security
-        - name: WEC6-Exploit-Guard
-        - name: WEC6-Microsoft-Office
-        - name: WEC6-Software-Restriction-Policies
-        - name: WEC6-Sysmon
-        - name: WEC7-Active-Directory
-        - name: WEC7-Privilege-Use
-        - name: WEC7-Terminal-Services
-    output.kafka:
-        enabled: true
-        hosts: ["ubuntu-kafka:9092"]
-        topic: "windows"
-        partition.round_robin:
-            reachable_only: false
+#     winlogbeat.event_logs:
+#         - name: WEC-Authentication
+#         - name: WEC-Code-Integrity
+#         - name: WEC-EMET
+#         - name: WEC-Powershell
+#         - name: WEC-Process-Execution
+#         - name: WEC-Services
+#         - name: WEC-WMI
+#         - name: WEC2-Application-Crashes
+#         - name: WEC2-Applocker
+#         - name: WEC2-Group-Policy-Errors
+#         - name: WEC2-Object-Manipulation
+#         - name: WEC2-Registry
+#         - name: WEC2-Task-Scheduler
+#         - name: WEC2-Windows-Defender
+#         - name: WEC3-Account-Management
+#         - name: WEC3-Drivers
+#         - name: WEC3-External-Devices
+#         - name: WEC3-Firewall
+#         - name: WEC3-Print
+#         - name: WEC3-Smart-Card
+#         - name: WEC3-Windows-Diagnostics
+#         - name: WEC4-Bits-Client
+#         - name: WEC4-DNS
+#         - name: WEC4-Hotpatching-Errors
+#         - name: WEC4-Shares
+#         - name: WEC4-System-Time-Change
+#         - name: WEC4-Windows-Updates
+#         - name: WEC4-Wireless
+#         - name: WEC5-Autoruns
+#         - name: WEC5-Certificate-Authority
+#         - name: WEC5-Crpyto-API
+#         - name: WEC5-Log-Deletion-Security
+#         - name: WEC5-Log-Deletion-System
+#         - name: WEC5-MSI-Packages
+#         - name: WEC5-Operating-System
+#         - name: WEC6-ADFS
+#         - name: WEC6-Device-Guard
+#         - name: WEC6-Duo-Security
+#         - name: WEC6-Exploit-Guard
+#         - name: WEC6-Microsoft-Office
+#         - name: WEC6-Software-Restriction-Policies
+#         - name: WEC6-Sysmon
+#         - name: WEC7-Active-Directory
+#         - name: WEC7-Privilege-Use
+#         - name: WEC7-Terminal-Services
+#     output.kafka:
+#         enabled: true
+#         hosts: ["ubuntu-kafka:9092"]
+#         topic: "windows"
+#         partition.round_robin:
+#             reachable_only: false
 
-        required_acks: 1
-        compression: none
-        max_message_bytes: 1000000
-        # version: 2.0.0
-        codec.json:
-            pretty: true
-            escape_html: false
-    "@
-    $config | Set-Content -Path "C:\winlogbeat\winlogbeat.yml"
+#         required_acks: 1
+#         compression: none
+#         max_message_bytes: 1000000
+#         # version: 2.0.0
+#         codec.json:
+#             pretty: true
+#             escape_html: false
+#     "@
+#     $config | Set-Content -Path "C:\winlogbeat\winlogbeat.yml"
+
+- name: Copy and replace winlogbeat.yml
+  ansible.windows.win_copy:
+    src:  "{{ role_path }}/files/winlogbeat.yml"
+    dest: C:\winlogbeat\winlogbeat.yml
+    force: true
 
 - name: Add kafka broker to hosts file
   community.windows.win_hosts:
