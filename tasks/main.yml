@@ -40,7 +40,6 @@
     }
     Start-Service wecsvc
     ForEach ($file in gci "C:\Wef\windows-event-forwarding-master\wef-subscriptions" -Filter "*.xml"){wecutil cs $($file.FullName)}
-    
 
 - name: Set ACL via CMD
   ansible.windows.win_command: "{{ item }}"
@@ -143,7 +142,7 @@
 
 - name: Copy and replace winlogbeat.yml
   ansible.windows.win_copy:
-    src:  "{{ role_path }}/files/winlogbeat.yml"
+    src: "{{ role_path }}/files/winlogbeat.yml"
     dest: C:\winlogbeat\winlogbeat.yml
     force: true
 
