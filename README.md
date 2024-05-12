@@ -6,7 +6,7 @@ Setup a Windows Event Collector based on the [Windows Event Forwarding repo from
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+pywinrm
 
 Role Variables
 --------------
@@ -18,7 +18,12 @@ kafka_broker_ip: 192.168.10.3
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+A domain joined server is necessary with internet access as during play necessary binaries were downloaded. For plug and play a GPO pointing to the WEC is required. <br>
+
+Reference roles:
+- [atb-ansible-msclient](https://github.com/ait-testbed/atb-ansible-msclient)
+- [atb-ansible-simplekafka](https://github.com/ait-testbed/atb-ansible-simplekafka)
+
 
 Example Playbook
 ----------------
@@ -27,7 +32,8 @@ Including an example of how to use your role (for instance, with variables passe
 
     - hosts: servers
       roles:
-         - { role: username.rolename, x: 42 }
+         - atb-ansible-msclient
+         - atb-ansible-windowseventcollector
 
 License
 -------
